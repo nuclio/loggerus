@@ -22,19 +22,19 @@ func NewJSONLoggerus(name string, level logrus.Level, output io.Writer) (*Logger
 		return nil, err
 	}
 
-	return newLoggerus(name, level, output, loggerJSONFormatter)
+	return createLoggerus(name, level, output, loggerJSONFormatter)
 }
 
-func NewLoggerus(name string, level logrus.Level, output io.Writer, enrichWhoField bool) (*Loggerus, error) {
+func NewTextLoggerus(name string, level logrus.Level, output io.Writer, enrichWhoField bool) (*Loggerus, error) {
 	loggerTextFormatter, err := newTextFormatter(0, enrichWhoField)
 	if err != nil {
 		return nil, err
 	}
 
-	return newLoggerus(name, level, output, loggerTextFormatter)
+	return createLoggerus(name, level, output, loggerTextFormatter)
 }
 
-func newLoggerus(name string, level logrus.Level, output io.Writer, formatter logrus.Formatter) (*Loggerus, error) {
+func createLoggerus(name string, level logrus.Level, output io.Writer, formatter logrus.Formatter) (*Loggerus, error) {
 	newLoggerus := Loggerus{
 		logrus: logrus.New(),
 		name:   name,
@@ -133,7 +133,7 @@ func (l *Loggerus) Flush() {
 
 // GetChild returns a child logger, if underlying logger supports hierarchal logging
 func (l *Loggerus) GetChild(name string) logger.Logger {
-	childLogger, _ := newLoggerus(l.name+"."+name,
+	childLogger, _ := createLoggerus(l.name+"."+name,
 		l.logrus.Level,
 		l.logrus.Out,
 		l.logrus.Formatter)
