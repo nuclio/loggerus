@@ -6,11 +6,13 @@ import (
 	"github.com/nuclio/logger"
 	"github.com/sirupsen/logrus"
 	"io"
+	"os"
 )
 
 type Loggerus struct {
 	logrus *logrus.Logger
 	name   string
+	output io.Writer
 }
 
 // Creates a logger pre-configured for commands
@@ -34,10 +36,26 @@ func NewTextLoggerus(name string, level logrus.Level, output io.Writer, enrichWh
 	return createLoggerus(name, level, output, loggerTextFormatter)
 }
 
+func NewLoggerusForTests(name string) (*Loggerus, error) {
+	var loggerLevel logrus.Level
+
+	if isVerboseTesting() {
+		loggerLevel = logrus.DebugLevel
+	} else {
+		loggerLevel = logrus.InfoLevel
+	}
+
+	loggerRedactor := NewRedactor(os.Stdout)
+	loggerRedactor.AddValueRedactions([]string{"java_key_store", "key_base64", "cert_base64"})
+
+	return NewTextLoggerus(name, loggerLevel, loggerRedactor, true)
+}
+
 func createLoggerus(name string, level logrus.Level, output io.Writer, formatter logrus.Formatter) (*Loggerus, error) {
 	newLoggerus := Loggerus{
 		logrus: logrus.New(),
 		name:   name,
+		output: output,
 	}
 
 	newLoggerus.logrus.SetOutput(output)
@@ -149,6 +167,14 @@ func (l *Loggerus) GetRedactor() *Redactor {
 	return nil
 }
 
+func (l *Loggerus) GetOutput() io.Writer {
+	return l.output
+}
+
+func (l *Loggerus) GetLogrus() *logrus.Logger {
+	return l.logrus
+}
+
 func (l *Loggerus) getFormatWithContext(ctx context.Context, format interface{}) string {
 	formatString := format.(string)
 
@@ -191,4 +217,14 @@ func (l *Loggerus) varsToFieldsWithCtx(ctx context.Context, vars []interface{}) 
 	}
 
 	return l.varsToFields(vars)
+}
+
+// use this instead of testing.Verbose since we don't want to get testing flags in our code
+func isVerboseTesting() bool {
+	for _, arg := range os.Args {
+		if arg == "-test.v=true" || arg == "-test.v" {
+			return true
+		}
+	}
+	return false
 }
