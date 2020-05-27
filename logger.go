@@ -3,10 +3,11 @@ package loggerus
 import (
 	"context"
 	"fmt"
-	"github.com/nuclio/logger"
-	"github.com/sirupsen/logrus"
 	"io"
 	"os"
+
+	"github.com/nuclio/logger"
+	"github.com/sirupsen/logrus"
 )
 
 type Loggerus struct {
