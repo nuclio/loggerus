@@ -9,9 +9,11 @@ import (
 
 type RedactingLogger interface {
 	GetRedactor() *Redactor
+	GetOutput() io.Writer
 }
 
 type Redactor struct {
+	disabled               bool
 	output                 io.Writer
 	redactions             []string
 	valueRedactions        []string
@@ -26,12 +28,21 @@ func NewRedactor(output io.Writer) *Redactor {
 		valueRedactions:        []string{},
 		replacementString:      "*****",
 		valueReplacementString: "[redacted]",
+		disabled:               false,
 	}
+}
+
+func (r *Redactor) GetOutput() io.Writer {
+	return r.output
 }
 
 func (r *Redactor) AddValueRedactions(valueRedactions []string) {
 	r.valueRedactions = append(r.valueRedactions, valueRedactions...)
 	r.valueRedactions = r.removeDuplicates(r.valueRedactions)
+}
+
+func (r *Redactor) GetRedactions() []string {
+	return r.redactions
 }
 
 func (r *Redactor) AddRedactions(redactions []string) {
@@ -49,10 +60,33 @@ func (r *Redactor) AddRedactions(redactions []string) {
 
 func (r *Redactor) Write(p []byte) (n int, err error) {
 	redactedPrint := r.redact(string(p[:]))
-	return r.output.Write([]byte(redactedPrint))
+	n, err = r.output.Write([]byte(redactedPrint))
+	if err != nil {
+		return
+	}
+	if n != len(redactedPrint) {
+		err = io.ErrShortWrite
+		return
+	}
+
+	// HACK: let the caller know we wrote the original length of the text
+	// To prevent caller explode while validating the length of the written text (redaction might change the length)
+	return len(p), err
+}
+
+func (r *Redactor) Enable() {
+	r.disabled = false
+}
+
+func (r *Redactor) Disable() {
+	r.disabled = true
 }
 
 func (r *Redactor) redact(input string) string {
+	if r.disabled {
+		return input
+	}
+
 	redacted := input
 
 	// golang regex doesn't support lookarounds, so we will check things manually
