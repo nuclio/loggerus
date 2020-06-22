@@ -47,7 +47,7 @@ func NewLoggerusForTests(name string) (*Loggerus, error) {
 	}
 
 	loggerRedactor := NewRedactor(os.Stdout)
-	loggerRedactor.AddValueRedactions([]string{"java_key_store", "key_base64", "cert_base64"})
+	loggerRedactor.Disable()
 
 	return NewTextLoggerus(name, loggerLevel, loggerRedactor, true)
 }
