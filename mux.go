@@ -123,5 +123,12 @@ func (ml *MuxLogger) Flush() {
 }
 
 func (ml *MuxLogger) GetChild(name string) logger.Logger {
-	return ml
+	childLoggers := []logger.Logger{}
+	for _, loggerInstance := range ml.loggers {
+		childLogger := loggerInstance.GetChild(name)
+		childLoggers = append(childLoggers, childLogger)
+	}
+	childMuxLogger, _ := NewMuxLogger(childLoggers...)
+
+	return childMuxLogger
 }
