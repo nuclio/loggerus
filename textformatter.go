@@ -1,27 +1,44 @@
+/*
+Copyright 2021 The Nuclio Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package loggerus
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"math"
 	"reflect"
 	"strings"
 
-	"github.com/fatih/color"
+	"github.com/logrusorgru/aurora/v3"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/tools/container/intsets"
 )
 
 type TextFormatter struct {
 	maxVariableLen int
 	enrichWhoField bool
+	auroraInstance aurora.Aurora
 }
 
-func newTextFormatter(maxVariableLen int, enrichWhoField bool) (*TextFormatter, error) {
-	color.NoColor = false
+func newTextFormatter(maxVariableLen int, enrichWhoField bool, color bool) (*TextFormatter, error) {
 	return &TextFormatter{
 		maxVariableLen: maxVariableLen,
 		enrichWhoField: enrichWhoField,
+		auroraInstance: aurora.NewAurora(color),
 	}, nil
 }
 
@@ -29,11 +46,11 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	buffer := bytes.NewBuffer([]byte{})
 
 	// write date
-	buffer.WriteString(color.WhiteString(entry.Time.Format("02-01-06 15:04:05.000"))) // nolint: errcheck
+	buffer.WriteString(f.auroraInstance.White(entry.Time.Format("02-01-06 15:04:05.000")).String()) // nolint: errcheck
 
 	// write logger name
 	if f.enrichWhoField {
-		buffer.WriteString(" " + color.CyanString(f.getFormattedWho(entry.Data))) // nolint: errcheck
+		buffer.WriteString(" " + f.auroraInstance.Cyan(f.getFormattedWho(entry.Data)).String()) // nolint: errcheck
 	}
 
 	// write level
@@ -56,28 +73,28 @@ func (f *TextFormatter) getLevelOutput(level logrus.Level) string {
 	switch level {
 
 	case logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel:
-		return color.HiRedString("(E)")
+		return f.auroraInstance.Red("(E)").String()
 
 	case logrus.WarnLevel:
-		return color.HiYellowString("(W)")
+		return f.auroraInstance.Yellow("(W)").String()
 
 	case logrus.InfoLevel:
-		return color.HiBlueString("(I)")
+		return f.auroraInstance.Blue("(I)").String()
 
 	case logrus.DebugLevel:
-		return color.GreenString("(D)")
+		return f.auroraInstance.Green("(D)").String()
 
 	case logrus.TraceLevel:
-		return color.GreenString("(T)")
+		return f.auroraInstance.Green("(T)").String()
 	}
 
-	return color.RedString("(?)")
+	return f.auroraInstance.BrightRed("(?)").String()
 }
 
 func (f *TextFormatter) getFieldsOutput(fields logrus.Fields) string {
 	maxVariableLen := f.maxVariableLen
 	if maxVariableLen == 0 {
-		maxVariableLen = intsets.MaxInt
+		maxVariableLen = math.MaxInt64
 	}
 
 	// remove context - it shouldn't be printed
@@ -123,13 +140,13 @@ func (f *TextFormatter) getFieldsOutput(fields logrus.Fields) string {
 
 	fieldsOutput := ""
 	if len(singleLineKV) != 0 {
-		fieldsOutput = color.WhiteString(" :: ")
+		fieldsOutput = f.auroraInstance.White(" :: ").String()
 	}
 
-	separator := color.WhiteString(" || ")
+	separator := f.auroraInstance.White(" || ").String()
 
 	for singleLineKey, singleLineValue := range singleLineKV {
-		fieldsOutput += fmt.Sprintf("%s=%s%s", color.BlueString(singleLineKey), singleLineValue, separator)
+		fieldsOutput += fmt.Sprintf("%s=%s%s", f.auroraInstance.Blue(singleLineKey).String(), singleLineValue, separator)
 	}
 
 	// remove last ||
@@ -137,7 +154,7 @@ func (f *TextFormatter) getFieldsOutput(fields logrus.Fields) string {
 
 	if len(blockKV) != 0 {
 		for blockKey, blockValue := range blockKV {
-			fieldsOutput += fmt.Sprintf("\n* %s:\n", color.BlueString(blockKey))
+			fieldsOutput += fmt.Sprintf("\n* %s:\n", f.auroraInstance.Blue(blockKey).String())
 			fieldsOutput += blockValue
 			fieldsOutput += "\n"
 		}

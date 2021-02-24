@@ -1,0 +1,45 @@
+linters:
+  disable-all: true
+  enable:
+    - deadcode
+    - goconst
+    - gofmt
+    - golint
+    - gosimple
+    - ineffassign
+    - interfacer
+    - misspell
+    - staticcheck
+    - unconvert
+    - varcheck
+    - vet
+    - vetshadow
+    - errcheck
+    - govet
+    - structcheck
+    - typecheck
+    - gocritic
+
+run:
+
+  # timeout for analysis
+  timeout: 5m
+
+linters-settings:
+  gocritic:
+    disabled-checks:
+      - commentFormatting # we dont want to enforce space before the comment text
+
+issues:
+
+  # List of regexps of issue texts to exclude
+  exclude:
+    - "comment on"
+    - "error should be the last"
+
+  exclude-rules:
+
+    # list of excluded linters applied on test files
+    - path: _test\.go
+      linters:
+        - goconst
