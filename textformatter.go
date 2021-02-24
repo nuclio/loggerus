@@ -10,7 +10,6 @@ import (
 
 	"github.com/logrusorgru/aurora/v3"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/tools/container/intsets"
 )
 
 type TextFormatter struct {
@@ -79,7 +78,7 @@ func (f *TextFormatter) getLevelOutput(level logrus.Level) string {
 func (f *TextFormatter) getFieldsOutput(fields logrus.Fields) string {
 	maxVariableLen := f.maxVariableLen
 	if maxVariableLen == 0 {
-		maxVariableLen = intsets.MaxInt
+		maxVariableLen = math.MaxInt64
 	}
 
 	// remove context - it shouldn't be printed

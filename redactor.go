@@ -59,7 +59,7 @@ func (r *Redactor) AddRedactions(redactions []string) {
 }
 
 func (r *Redactor) Write(p []byte) (n int, err error) {
-	redactedPrint := r.redact(string(p[:]))
+	redactedPrint := r.redact(string(p))
 	n, err = r.output.Write([]byte(redactedPrint))
 	if err != nil {
 		return
@@ -103,7 +103,7 @@ func (r *Redactor) redact(input string) string {
 
 	// replace the simple string redactions
 	for _, redactionField := range r.redactions {
-		redacted = strings.Replace(redacted, redactionField, r.replacementString, -1)
+		redacted = strings.ReplaceAll(redacted, redactionField, r.replacementString)
 	}
 
 	return redacted

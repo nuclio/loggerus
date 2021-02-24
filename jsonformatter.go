@@ -100,7 +100,7 @@ func (f *JSONFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 
 // Build data["more"] value
 func buildMoreValue(data *logrus.Fields) map[string]string {
-	additionalData := make(map[string]string, 0)
+	additionalData := make(map[string]string)
 
 	for key, value := range *data {
 		switch key {
