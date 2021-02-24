@@ -28,8 +28,8 @@ func NewJSONLoggerus(name string, level logrus.Level, output io.Writer) (*Logger
 	return createLoggerus(name, level, output, loggerJSONFormatter)
 }
 
-func NewTextLoggerus(name string, level logrus.Level, output io.Writer, enrichWhoField bool) (*Loggerus, error) {
-	loggerTextFormatter, err := newTextFormatter(0, enrichWhoField)
+func NewTextLoggerus(name string, level logrus.Level, output io.Writer, enrichWhoField bool, color bool) (*Loggerus, error) {
+	loggerTextFormatter, err := newTextFormatter(0, enrichWhoField, color)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func NewLoggerusForTests(name string) (*Loggerus, error) {
 	loggerRedactor := NewRedactor(os.Stdout)
 	loggerRedactor.Disable()
 
-	return NewTextLoggerus(name, loggerLevel, loggerRedactor, true)
+	return NewTextLoggerus(name, loggerLevel, loggerRedactor, true, true)
 }
 
 func createLoggerus(name string, level logrus.Level, output io.Writer, formatter logrus.Formatter) (*Loggerus, error) {

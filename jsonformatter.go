@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/sirupsen/logrus"
 )
 
@@ -22,7 +21,6 @@ type JSONFormatter struct {
 }
 
 func newJSONFormatter(timestampFormat string, timeZone string) (*JSONFormatter, error) {
-	color.NoColor = false
 	return &JSONFormatter{
 		timestampFormat: timestampFormat,
 		TimeZone:        timeZone,
