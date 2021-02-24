@@ -22,14 +22,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nuclio/logger"
 	"github.com/stretchr/testify/suite"
 )
 
 type redactorSuite struct {
 	suite.Suite
 	redactor *Redactor
-	logger   logger.Logger
 }
 
 func (suite *redactorSuite) TestKeyValueTypeValueRedactions() {

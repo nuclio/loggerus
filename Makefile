@@ -13,6 +13,7 @@
 # limitations under the License.
 
 GOPATH ?= $(shell go env GOPATH)
+OS_NAME = $(shell uname)
 
 
 .PHONY: fmt
@@ -36,7 +37,7 @@ lint: modules
 
 	@echo Verifying imports...
 	$(GOPATH)/bin/impi \
-		--local github.com/nuclio/loggerus/ \
+		--local github.com/nuclio/loggerus \
 		--scheme stdLocalThirdParty \
 		./...
 
