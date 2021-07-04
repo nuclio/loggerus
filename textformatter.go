@@ -18,6 +18,7 @@ package loggerus
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -29,16 +30,21 @@ import (
 )
 
 type TextFormatter struct {
-	maxVariableLen int
-	enrichWhoField bool
-	auroraInstance aurora.Aurora
+	maxVariableLen   int
+	enrichWhoField   bool
+	auroraInstance   aurora.Aurora
+	contextFormatter func(context.Context) string
 }
 
-func newTextFormatter(maxVariableLen int, enrichWhoField bool, color bool) (*TextFormatter, error) {
+func NewTextFormatter(maxVariableLen int,
+	enrichWhoField bool,
+	color bool,
+	contextFormatter func(context.Context) string) (*TextFormatter, error) {
 	return &TextFormatter{
-		maxVariableLen: maxVariableLen,
-		enrichWhoField: enrichWhoField,
-		auroraInstance: aurora.NewAurora(color),
+		maxVariableLen:   maxVariableLen,
+		enrichWhoField:   enrichWhoField,
+		auroraInstance:   aurora.NewAurora(color),
+		contextFormatter: contextFormatter,
 	}, nil
 }
 
@@ -97,13 +103,28 @@ func (f *TextFormatter) getFieldsOutput(fields logrus.Fields) string {
 		maxVariableLen = math.MaxInt64
 	}
 
-	// remove context - it shouldn't be printed
-	delete(fields, "ctx")
-
 	singleLineKV := map[string]string{}
 	blockKV := map[string]string{}
 
 	for fieldKey, fieldValue := range fields {
+
+		if fieldKey == "ctx" {
+
+			// if we were provided with a context formatter
+			if f.contextFormatter != nil {
+
+				// if the value is a context (it should be)
+				if ctx, isContext := fieldValue.(context.Context); isContext {
+
+					// only if there's a value
+					if contextValue := f.contextFormatter(ctx); contextValue != "" {
+						singleLineKV["ctx"] = contextValue
+					}
+				}
+			}
+
+			continue
+		}
 
 		// if we're dealing with a struct, use json
 		switch reflect.Indirect(reflect.ValueOf(fieldValue)).Kind() {
