@@ -168,7 +168,14 @@ func (l *Loggerus) Flush() {
 
 // GetChild returns a child logger, if underlying logger supports hierarchal logging
 func (l *Loggerus) GetChild(name string) logger.Logger {
-	childLogger, _ := NewLoggerus(l.name+"."+name,
+	var childLoggerName string
+	if len(l.name) > 0 {
+		childLoggerName = l.name + "." + name
+	} else {
+		childLoggerName = name
+	}
+
+	childLogger, _ := NewLoggerus(childLoggerName,
 		l.logrus.Level,
 		l.logrus.Out,
 		l.logrus.Formatter)
