@@ -25,6 +25,9 @@ on:
       - development
       - master
 
+permissions:
+  contents: read
+  actions: write
 
 jobs:
   lint:
