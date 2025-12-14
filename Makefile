@@ -14,35 +14,22 @@
 
 GOPATH ?= $(shell go env GOPATH)
 OS_NAME = $(shell uname)
+ROOT_DIR := $(shell pwd)
+
+GOLANGCI_LINT_VERSION := 2.7.2
+GOLANGCI_LINT_BIN := $(ROOT_DIR)/.bin/golangci-lint
+GOLANGCI_LINT_INSTALL_COMMAND := curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(ROOT_DIR)/.bin v$(GOLANGCI_LINT_VERSION)
 
 
 .PHONY: fmt
-fmt:
+fmt: ensure-golangci-linter
 	gofmt -s -w .
+	$(GOLANGCI_LINT_BIN) run --fix
 
 .PHONY: lint
-lint: modules
-	@echo Installing linters...
-	@test -e $(GOPATH)/bin/impi || \
-		(mkdir -p $(GOPATH)/bin && \
-		curl -s https://api.github.com/repos/pavius/impi/releases/latest \
-		| grep -i "browser_download_url.*impi.*$(OS_NAME)" \
-		| cut -d : -f 2,3 \
-		| tr -d \" \
-		| wget -O $(GOPATH)/bin/impi -qi - \
-		&& chmod +x $(GOPATH)/bin/impi)
-
-	@test -e $(GOPATH)/bin/golangci-lint || \
-	  	(curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin v1.36.0)
-
-	@echo Verifying imports...
-	$(GOPATH)/bin/impi \
-		--local github.com/nuclio/loggerus \
-		--scheme stdLocalThirdParty \
-		./...
-
+lint: modules ensure-golangci-linter
 	@echo Linting...
-	$(GOPATH)/bin/golangci-lint run -v
+	$(GOLANGCI_LINT_BIN) run -v
 	@echo Done.
 
 .PHONY: test
@@ -59,3 +46,17 @@ ensure-gopath:
 ifndef GOPATH
 	$(error GOPATH must be set)
 endif
+
+.PHONY: ensure-golangci-linter
+ensure-golangci-linter:
+	@mkdir -p $(ROOT_DIR)/.bin
+	@if ! command -v $(GOLANGCI_LINT_BIN) >/dev/null 2>&1; then \
+		echo "golangci-lint not found. Installing..."; \
+		$(GOLANGCI_LINT_INSTALL_COMMAND); \
+	else \
+		installed_version=$$($(GOLANGCI_LINT_BIN) version | awk '/version/ {gsub(/^v/, "", $$4); print $$4}'); \
+		if [ "$$installed_version" != "$(GOLANGCI_LINT_VERSION)" ]; then \
+			echo "Version mismatch ($$installed_version != $(GOLANGCI_LINT_VERSION)). Reinstalling..."; \
+			$(GOLANGCI_LINT_INSTALL_COMMAND); \
+		fi \
+	fi

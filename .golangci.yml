@@ -1,4 +1,4 @@
-# Copyright 2019 The Nuclio Authors.
+# Copyright 2025 The Nuclio Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,48 +12,59 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+version: "2"
+run:
+  timeout: 5m
+  build-tags:
+    - test_unit
+    - test_integration
 linters:
-  disable-all: true
+  default: none
   enable:
-    - deadcode
+    - errcheck
     - goconst
-    - gofmt
-    - golint
-    - gosimple
+    - gocritic
+    - govet
     - ineffassign
-    - interfacer
     - misspell
+    - revive
     - staticcheck
     - unconvert
-    - varcheck
-    - vet
-    - vetshadow
-    - errcheck
-    - govet
-    - structcheck
-    - typecheck
-    - gocritic
-
-run:
-
-  # timeout for analysis
-  timeout: 5m
-
-linters-settings:
-  gocritic:
-    disabled-checks:
-      - commentFormatting # we dont want to enforce space before the comment text
-
-issues:
-
-  # List of regexps of issue texts to exclude
-  exclude:
-    - "comment on"
-    - "error should be the last"
-
-  exclude-rules:
-
-    # list of excluded linters applied on test files
-    - path: _test\.go
-      linters:
-        - goconst
+    - unused
+  settings:
+    gocritic:
+      disabled-checks:
+        - commentFormatting
+    revive:
+      rules:
+        - name: errorf
+          disabled: true
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - path: (.+)\.go$
+        text: comment on
+      - path: (.+)\.go$
+        text: error should be the last
+      - path: _test\.go
+        linters:
+          - goconst
+formatters:
+  enable:
+    - gci
+    - gofmt
+  settings:
+    gci:
+      sections:
+        - standard
+        - prefix(github.com/iguazio/orca)
+        - default
+        - blank
+        - dot
+      custom-order: true

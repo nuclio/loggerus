@@ -138,7 +138,7 @@ func (f *TextFormatter) getFieldsOutput(fields logrus.Fields) string {
 				blockBuffer := bytes.NewBuffer([]byte{})
 
 				if err := json.Indent(blockBuffer, fieldValueBytes, "", "\t"); err != nil {
-					blockBuffer.WriteString(fmt.Sprintf("Failed to encode: %s", err.Error())) // nolint: errcheck
+					fmt.Fprintf(blockBuffer, "Failed to encode: %s", err.Error()) // nolint: errcheck
 				}
 
 				blockKV[fieldKey] = blockBuffer.String()

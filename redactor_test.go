@@ -18,7 +18,7 @@ package loggerus
 
 import (
 	"bytes"
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -39,7 +39,7 @@ func (suite *redactorSuite) TestKeyValueTypeValueRedactions() {
 	suite.redactor.AddValueRedactions(valueRedactions)
 
 	// read file into byte string
-	unredactedCommand, err := ioutil.ReadFile("test/key_value.txt")
+	unredactedCommand, err := os.ReadFile("test/key_value.txt")
 	suite.Assert().Nil(err)
 
 	// write it using the redactor write function
@@ -62,7 +62,7 @@ func (suite *redactorSuite) TestDictTypeValueRedactions() {
 	suite.redactor.AddValueRedactions(valueRedactions)
 
 	// read file into byte string
-	unredactedCommand, err := ioutil.ReadFile("test/dict.txt")
+	unredactedCommand, err := os.ReadFile("test/dict.txt")
 	suite.Assert().Nil(err)
 
 	// write it using the redactor write function
