@@ -68,9 +68,3 @@ formatters:
         - blank
         - dot
       custom-order: true
-  exclusions:
-    generated: lax
-    paths:
-      - docs
-      - hack
-      - sdk
